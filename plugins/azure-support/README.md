@@ -31,12 +31,24 @@ The skill recommends escalation when the likelihood that only Microsoft can reso
 
 ## Telemetry
 
-The `track-telemetry` hook installs a pinned native `ghcfa-telem` release asset
-when needed, verifies its platform-specific SHA-256 digest before extraction,
-and caches the executable for reuse. To opt out of telemetry collection, set
+The built plugin ships the shared `track-telemetry` hook, registered for
+session start and post-tool-use events in the Copilot and Claude Code hook
+manifests (Cursor also registers `afterMCPExecution`). It records session starts and use of this plugin's skill, its
+reference files and scripts, and Azure MCP tools, identified by plugin name,
+version, client, event type, skill name and version, tool name, and reference
+path. Names are limited to generated allowlists packaged in
+`hooks/allowlists/` (`allowed-skills.txt`, `allowed-references.txt`,
+`allowed-tools.json`). Session record contents, support request text, and tool
+arguments are not part of these events.
+
+The hook installs a pinned native `ghcfa-telem` release asset when needed,
+verifies its platform-specific SHA-256 digest before extraction, and caches the
+executable for reuse. To opt out of telemetry collection, set
 `AZURE_MCP_COLLECT_TELEMETRY=false` in the environment of the process running
 the agent.
 
 ## Setup
 
-Authenticate with Azure CLI or another Azure Identity credential supported by Azure MCP, then install the plugin from the marketplace. Creating a support request requires a support plan and permission to create support tickets on the subscription; see [Create an Azure support request](https://learn.microsoft.com/azure/azure-portal/supportability/how-to-create-azure-support-request).
+Authenticate with Azure CLI or another Azure Identity credential supported by Azure MCP, then install the plugin from the marketplace.
+
+The outage check uses the Azure MCP Server `resourcehealth` commands `health-events list` and `availability-status get`. Use the version pinned in `mcp.json` or later. Resource Health commands first appeared in early Azure MCP releases but were later renamed and consolidated, so older versions may not expose the command names this skill uses. Creating a support request requires a support plan and permission to create support tickets on the subscription; see [Create an Azure support request](https://learn.microsoft.com/azure/azure-portal/supportability/how-to-create-azure-support-request).
