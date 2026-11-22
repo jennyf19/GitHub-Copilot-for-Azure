@@ -1,0 +1,22 @@
+{
+  "name": "azure-support",
+  "description": "Structured Azure support sessions: outage checks, platform-signal checklist, escalation decision, and approved support requests.",
+  "version": "0.0.0-placeholder",
+  "author": {
+    "name": "Microsoft",
+    "url": "https://www.microsoft.com"
+  },
+  "homepage": "https://github.com/microsoft/github-copilot-for-azure",
+  "repository": "https://github.com/microsoft/GitHub-Copilot-for-Azure",
+  "license": "MIT",
+  "keywords": [
+    "azure",
+    "cloud",
+    "support",
+    "service-health",
+    "troubleshooting"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "hooks": "./hooks/cursor-hooks.json"
+}

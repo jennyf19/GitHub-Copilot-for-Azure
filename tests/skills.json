@@ -124,6 +124,16 @@
             "integrationTestSchedule": {
                 "0 12 * * 2-6": "assess-observability-health,connect-observability,troubleshoot-observability,verify-observability-fix"
             }
+        },
+        {
+            "name": "azure-support",
+            "dirname": "azure-support",
+            "skills": [
+                "azure-support"
+            ],
+            "integrationTestSchedule": {
+                "0 12 * * 2-6": "azure-support"
+            }
         }
     ]
 }
