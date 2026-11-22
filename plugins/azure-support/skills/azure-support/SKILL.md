@@ -88,7 +88,7 @@ Always state `p_microsoft` (0–100, likelihood that only Microsoft can resolve 
 With the user's OK, keep a record per [session-record.md](references/session-record.md):
 - Default location is the user's local state directory, **outside any repo** (Windows `%LOCALAPPDATA%\azure-support\sessions\`; macOS/Linux `$XDG_STATE_HOME/azure-support/sessions/` or `~/.local/state/azure-support/sessions/`). Use the workspace only if the user explicitly asks; then ensure a `.gitignore` entry.
 - Append entries only with `scripts/append-record.ps1` / `scripts/append-record.sh`: it redacts secrets at write time and chains each entry with a timestamp and SHA-256 of the prior content (tamper-evident).
-- At session end, say where the record is and offer to delete it.
+- At session end, close the record (`--close` / `-Close` seals it with a whole-file hash), say where it is, and offer to delete it.
 
 ### Step 7 — Escalate (approval required)
 

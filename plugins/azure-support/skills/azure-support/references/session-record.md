@@ -19,15 +19,19 @@ Append every entry with the bundled script. Never edit the record file directly.
 
 ```powershell
 .\scripts\append-record.ps1 -Record <record-path> -EntryFile <entry.md>
+.\scripts\append-record.ps1 -Record <record-path> -Close
 .\scripts\append-record.ps1 -Record <record-path> -Verify
 ```
 ```bash
 ./scripts/append-record.sh --record <record-path> --entry-file <entry.md>
+./scripts/append-record.sh --record <record-path> --close
 ./scripts/append-record.sh --record <record-path> --verify
 ```
 
 - **Redaction at write time.** The script replaces keys, connection-string secrets, SAS signatures, bearer tokens, JWTs, passwords, private keys, and long base64 keys with `<redacted…>` before writing. Still leave secrets out of entries you compose; the script is a safety net.
-- **Hash chain.** Each entry header holds a UTC timestamp and the SHA-256 of the record content before the entry. `--verify` / `-Verify` reports any entry whose preceding content changed. This makes accidental or casual edits evident; it is not a signature.
+- **Hash chain.** Each entry header holds a UTC timestamp and the SHA-256 of the record content before the entry. `--verify` / `-Verify` reports any entry whose preceding content changed.
+- **Closing entry.** At session end, run `--close` / `-Close`. It appends `<!-- azure-support-close ts: … | file-sha256: … -->` with the SHA-256 of the whole record so far, so edits to the final entry are also detected. `--verify` checks the closing line and that nothing follows it, and reports whether the record is open or closed. A closed record accepts no more entries; start a new record for a new session.
+- The chain makes accidental or casual edits evident; it is not a signature.
 - Write the entry file in the same private directory and delete it after appending.
 
 ## Entries to write
@@ -43,4 +47,4 @@ Append every entry with the bundled script. Never edit the record file directly.
 
 ## Retention and cleanup
 
-The record stays on the user's machine; the user owns it and deletes it. At session end, tell the user where the record is and offer to delete it. Delete only with the user's yes.
+The record stays on the user's machine; the user owns it and deletes it. At session end, close the record, tell the user where it is, and offer to delete it. Delete only with the user's yes.

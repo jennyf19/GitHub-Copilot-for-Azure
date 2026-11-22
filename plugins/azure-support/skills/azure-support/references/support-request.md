@@ -63,7 +63,13 @@ Save the composed text in the private session directory and run the deterministi
 ./scripts/scan-ticket.sh --file <ticket.md> --scope <id> [--scope <id>]...
 ```
 
-It flags private keys, connection strings, SAS tokens, bearer tokens, JWTs, passwords/secrets, long base64 keys, and any GUID or resource ID outside the given scope.
+It flags private keys, connection strings, SAS tokens, bearer tokens, JWTs, passwords/secrets, padded base64 keys, unpadded high-entropy tokens (32+ characters of `[A-Za-z0-9+/_-]` above 4.5 bits/character, excluding plain words and in-scope IDs), and any GUID or resource ID outside the given scope. Values are masked in the output, for example:
+
+```text
+line 7: [high-entropy] Xq7p**** (5.17 bits/char)
+line 9: [out-of-scope-guid] 99999999-2222-3333-4444-555555555555
+FINDINGS: 2. Do not submit. Show these to the user and ask them to edit the text.
+```
 - **Exit 1 (findings):** stop. Show the findings to the user, require them to edit or approve removal, then rescan. Never submit while findings remain.
 - **Exit 0 (clean):** continue to approval.
 

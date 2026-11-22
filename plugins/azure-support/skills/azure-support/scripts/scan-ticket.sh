@@ -2,6 +2,8 @@
 # scan-ticket.sh
 # Deterministic secret and out-of-scope identifier scan for a composed Azure
 # support request (or any text file) before it is shown to the user for approval.
+# Also flags unpadded high-entropy tokens (32+ chars of [A-Za-z0-9+/_-] with Shannon
+# entropy above 4.5 bits/char) that are not plain words or in-scope IDs.
 # Prints each finding with line number and rule, with the matched value masked.
 #
 # Usage:
@@ -56,6 +58,15 @@ perl -ne '
     }
     for my $r (@rules) {
         while (/$r->[1]/g) { $hits++; print "line $.: [$r->[0]] " . mask($&) . "\n"; }
+    }
+    while (/[A-Za-z0-9+\/_-]{32,}/g) {
+        my $tok = $&;
+        next if $tok =~ /subscriptions\//i || $tok =~ /^[A-Za-z]+$/ || in_scope($tok);
+        my %freq; $freq{$_}++ for split //, $tok;
+        my $h = 0; my $n = length $tok;
+        for my $c (values %freq) { my $p = $c / $n; $h -= $p * log($p) / log(2); }
+        next unless $h > 4.5;
+        $hits++; print "line $.: [high-entropy] " . mask($tok) . sprintf(" (%.2f bits/char)\n", $h);
     }
     while (/\/subscriptions\/[^\s"`)]+/gi) {
         next if in_scope($&);

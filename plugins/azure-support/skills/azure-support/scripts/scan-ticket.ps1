@@ -3,7 +3,8 @@
     Deterministic secret and out-of-scope identifier scan for a composed Azure support request.
 .DESCRIPTION
     Scans a text file (the composed support request) before it is shown to the user for
-    approval. Prints each finding with line number and rule, with the matched value masked.
+    approval. Also flags unpadded high-entropy tokens (32+ chars of [A-Za-z0-9+/_-] with
+    Shannon entropy above 4.5 bits/char) that are not plain words or in-scope IDs. Prints each finding with line number and rule, with the matched value masked.
     GUIDs and resource IDs not covered by a -Scope value are reported as out of scope.
 .PARAMETER File
     Path to the composed support request text.
@@ -36,6 +37,14 @@ $rules = [ordered]@{
 $scopes = $Scope | Where-Object { $_ } | ForEach-Object { $_.ToLowerInvariant() }
 
 function Get-Mask([string]$v) { if ($v.Length -le 8) { '****' } else { $v.Substring(0, 4) + '****' } }
+function Get-Entropy([string]$v) {
+    $h = 0.0
+    foreach ($g in ($v.ToCharArray() | Group-Object -CaseSensitive)) {
+        $p = $g.Count / $v.Length
+        $h -= $p * [Math]::Log($p, 2)
+    }
+    return $h
+}
 function Test-InScope([string]$v) {
     $v = $v.ToLowerInvariant()
     foreach ($s in $scopes) { if ($v.Contains($s) -or $s.Contains($v)) { return $true } }
@@ -50,6 +59,12 @@ foreach ($line in [IO.File]::ReadAllLines((Resolve-Path -LiteralPath $File))) {
         foreach ($m in [regex]::Matches($line, $rules[$name])) {
             $hits++; Write-Output "line ${lineNo}: [$name] $(Get-Mask $m.Value)"
         }
+    }
+    foreach ($m in [regex]::Matches($line, '[A-Za-z0-9+/_-]{32,}')) {
+        $tok = $m.Value
+        if ($tok -match '(?i)subscriptions/' -or $tok -cmatch '^[A-Za-z]+$' -or (Test-InScope $tok)) { continue }
+        $h = Get-Entropy $tok
+        if ($h -gt 4.5) { $hits++; Write-Output ("line ${lineNo}: [high-entropy] $(Get-Mask $tok) ({0:N2} bits/char)" -f $h) }
     }
     foreach ($m in [regex]::Matches($line, '(?i)/subscriptions/[^\s"`)]+')) {
         if (-not (Test-InScope $m.Value)) { $hits++; Write-Output "line ${lineNo}: [out-of-scope-resource] $($m.Value)" }
